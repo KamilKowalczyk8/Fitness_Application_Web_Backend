@@ -2,7 +2,6 @@ const { check, validationResult } = require("express-validator");
 const User = require("../models/User");
 
 exports.validateRegister = [
-  // Sprawdzenie podstawowych pól
   check("confirmPassword")
     .notEmpty()
     .withMessage("Potwierdzenie hasła jest wymagane")
@@ -58,7 +57,6 @@ exports.validateRegister = [
     .matches(/[@$!%*?&]/)
     .withMessage("Hasło musi zawierać znak specjalny (@$!%*?&)"),
 
-  // Middleware do sprawdzania wyników walidacji
   (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -74,7 +72,6 @@ exports.validateRegister = [
   },
 ];
 
-// Dodatkowa walidacja dla logowania
 exports.validateLogin = [
   check("email")
     .trim()
