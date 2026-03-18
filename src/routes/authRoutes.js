@@ -1,14 +1,13 @@
 const express = require("express");
 const router = express.Router();
 
-const authController = require("../controllers/authController"); // 👈 Dodaj to
+const authController = require("../controllers/authController"); 
 const { validateRegister, validateLogin } = require("../middleware/validate");
 const { authenticate } = require("../middleware/auth");
-//const { User } = require("../models");
 
-router.post("/register", validateRegister, authController.register); // Rejestracja
-router.post("/login", validateLogin, authController.login); // Logowanie
-router.post("/logout", authController.logout); // Wylogowanie
+router.post("/register", validateRegister, authController.register); 
+router.post("/login", validateLogin, authController.login); 
+router.post("/logout", authController.logout); 
 
 router.get("/currentUser", authenticate(), async (req, res) => {
   try {
