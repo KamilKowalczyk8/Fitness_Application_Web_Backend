@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { Op } = require("sequelize");
 
-// Stałe dla bezpieczeństwa
 const PASSWORD_POLICY = {
   minLength: 8,
   requireUpper: true,
@@ -17,7 +16,6 @@ const TOKEN_CONFIG = {
   issuer: "your-app-name",
 };
 
-// Ulepszona walidacja hasła
 const validatePassword = (password) => {
   const errors = [];
 
@@ -48,7 +46,6 @@ const validatePassword = (password) => {
   return errors.length === 0 ? { valid: true } : { valid: false, errors };
 };
 
-// Generowanie tokenu z dodatkowymi zabezpieczeniami
 const generateToken = (userId, roleId) => {
   return jwt.sign(
     {
@@ -64,13 +61,10 @@ const generateToken = (userId, roleId) => {
   );
 };
 
-// Rejestracja z dodatkowymi zabezpieczeniami
 exports.register = async ({ first_name, last_name, email, password }) => {
   try {
-    // Normalizacja emaila
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Rozszerzona walidacja hasła
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
       throw new Error(
@@ -78,7 +72,6 @@ exports.register = async ({ first_name, last_name, email, password }) => {
       );
     }
 
-    // Sprawdzenie unikalności emaila (case-insensitive)
     const existingUser = await User.findOne({
       where: {
         email: {
@@ -91,10 +84,8 @@ exports.register = async ({ first_name, last_name, email, password }) => {
       throw new Error("Email jest już zajęty");
     }
 
-    // Haszowanie hasła z solą
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Tworzenie użytkownika w transakcji
     const user = await User.create({
       first_name: first_name.trim(),
       last_name: last_name.trim(),
@@ -105,7 +96,6 @@ exports.register = async ({ first_name, last_name, email, password }) => {
       last_password_change: new Date(),
     });
 
-    // Generowanie tokenu bez wrażliwych danych
     const token = generateToken(user.user_id, user.role_id);
 
     return {
@@ -118,18 +108,15 @@ exports.register = async ({ first_name, last_name, email, password }) => {
   }
 };
 
-// Logowanie z zabezpieczeniami przed atakami timingowymi
 exports.login = async (email, password) => {
   try {
-    // Normalizacja emaila
     const normalizedEmail = email.trim().toLowerCase();
     console.log(`[LOGIN] Próba logowania: ${normalizedEmail}`);
 
-    // Znajdź użytkownika z dokładnym dopasowaniem
     const user = await User.findOne({
       where: {
         email: {
-          [Op.eq]: normalizedEmail, // Ważne: użyj Op.eq zamiast Op.iLike
+          [Op.eq]: normalizedEmail, 
         },
       },
       raw: true,
@@ -150,7 +137,6 @@ exports.login = async (email, password) => {
       throw new Error("Konto nieaktywne");
     }
 
-    // Weryfikacja hasła
     const isMatch = await bcrypt.compare(password, user.password);
     console.log(`[LOGIN] Wynik porównania haseł: ${isMatch}`);
 
@@ -158,7 +144,6 @@ exports.login = async (email, password) => {
       throw new Error("Nieprawidłowe dane logowania");
     }
 
-    // Generowanie tokena
     const token = generateToken(user.id);
     console.log(`[LOGIN] Wygenerowano token: ${token.substring(0, 20)}...`);
 
@@ -180,10 +165,8 @@ exports.login = async (email, password) => {
     throw error;
   }
 };
-// Rozszerzone wylogowanie
 exports.logout = async (req, res) => {
   try {
-    // Dodatkowo unieważnij token (jeśli używasz blacklisty tokenów)
     if (req.user && req.user.jti) {
       await TokenBlacklist.create({
         tokenId: req.user.jti,
