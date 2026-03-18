@@ -7,7 +7,7 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: "postgres",
-    logging: false, // Wyłącz logowanie zapytań SQL w produkcji
+    logging: false,
   }
 );
 
