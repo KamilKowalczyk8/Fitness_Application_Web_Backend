@@ -46,7 +46,7 @@ const User = sequelize.define(
     },
     role_id: {
       type: DataTypes.INTEGER,
-      defaultValue: 2, // Domyślnie rola użytkownika (2), admin (1)
+      defaultValue: 2, 
     },
     created_at: {
       type: DataTypes.DATE,
@@ -77,7 +77,6 @@ const User = sequelize.define(
   }
 );
 
-// Dodanie metod instancji
 User.prototype.comparePassword = async function (candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
 };
