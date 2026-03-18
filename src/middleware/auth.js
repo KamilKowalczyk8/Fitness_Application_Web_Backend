@@ -7,7 +7,6 @@ const jwt = require("jsonwebtoken");
 exports.authenticate = (roles = []) => {
   return async (req, res, next) => {
     try {
-      // 1. Pobierz token z różnych źródeł
       const token =
         req.header("Authorization")?.replace("Bearer ", "") ||
         req.cookies?.token ||
@@ -21,12 +20,10 @@ exports.authenticate = (roles = []) => {
         });
       }
 
-      // 2. Weryfikacja tokena
       const decoded = jwt.verify(token, process.env.JWT_SECRET, {
         algorithms: ["HS256"],
       });
 
-      // 3. Sprawdzenie ważności tokena (jeśli masz wersję z expiresIn)
       if (decoded.exp && Date.now() >= decoded.exp * 1000) {
         return res.status(401).json({
           success: false,
@@ -35,7 +32,6 @@ exports.authenticate = (roles = []) => {
         });
       }
 
-      // 4. Walidacja struktury tokena
       if (!decoded.userId || !decoded.roleId) {
         return res.status(401).json({
           success: false,
@@ -44,7 +40,6 @@ exports.authenticate = (roles = []) => {
         });
       }
 
-      // 5. Kontrola dostępu oparta na rolach
       if (roles.length > 0 && !roles.includes(decoded.roleId)) {
         return res.status(403).json({
           success: false,
@@ -55,7 +50,6 @@ exports.authenticate = (roles = []) => {
         });
       }
 
-      // 6. Dołącz pełne dane użytkownika do requestu
       req.user = {
         id: decoded.userId,
         role: decoded.roleId,
@@ -64,7 +58,6 @@ exports.authenticate = (roles = []) => {
         ...(decoded.refreshToken && { refreshToken: decoded.refreshToken }),
       };
 
-      // 7. Logowanie sukcesu (tylko w development)
       if (process.env.NODE_ENV === "development") {
         console.log(
           `Zautentykowany użytkownik ID: ${decoded.userId}, Rola: ${decoded.roleId}`
@@ -73,7 +66,6 @@ exports.authenticate = (roles = []) => {
 
       next();
     } catch (err) {
-      // Obsługa różnych typów błędów JWT
       let errorMessage = "Nieprawidłowy token";
       let errorCode = "INVALID_TOKEN";
 
@@ -95,7 +87,6 @@ exports.authenticate = (roles = []) => {
   };
 };
 
-// Dodatkowa funkcja do generowania tokenów
 function generateToken(userId) {
   // Upewnij się, że JWT_SECRET jest ustawiony w .env!
   if (!process.env.JWT_SECRET) {
@@ -108,8 +99,3 @@ function generateToken(userId) {
     { expiresIn: "24h" } // Dostosuj czas ważności
   );
 }
-// Middleware do odświeżania tokena (opcjonalne)
-exports.refreshTokenMiddleware = (req, res, next) => {
-  // Implementacja odświeżania tokena
-  // ...
-};
